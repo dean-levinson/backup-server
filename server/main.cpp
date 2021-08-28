@@ -44,6 +44,7 @@ void run_server(boost::asio::io_context& io_context, address_v4 address, unsigne
       tcp::endpoint remote_ep = sock.remote_endpoint();
       std::cout << "Starting session with (" << remote_ep.address() << ", " << remote_ep.port() << ")" << std::endl; 
       std::thread(session, std::move(sock)).detach();
+      // I need to understand how I close the socket when the connection is closed.
     }
 }
 
