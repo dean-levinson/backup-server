@@ -1,3 +1,6 @@
+#ifndef SERVER_H_
+#define SERVER_H_
+
 #include <cstdlib>
 #include <iostream>
 #include <thread>
@@ -15,3 +18,5 @@ using boost::asio::ip::tcp;
  * @param port - the TCP port which the server should bind to.
  */
 void run_server(boost::asio::io_context& io_context, address_v4 address, unsigned short port);
+
+#endif /* SERVER_H_ */
