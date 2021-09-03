@@ -5,6 +5,21 @@
 
 using namespace std;
 
+enum OP_CODE {
+    BACKUP_FILE = 100,
+    RESTORE_FILE = 200,
+    REMOVE_FILE = 201,
+    LIST_FILES = 202
+};
+
+enum STATUS_CODE {
+    BACKUP_SUCCESS = 210,
+    LIST_FILES_SUCCESS = 211,
+    FILE_NOT_FOUND = 1001,
+    NO_FILES = 1002,
+    GENERAL_FAILURE = 1003
+};
+
 class RequestParser {
     public:
     void init(iostream& stream);
@@ -23,7 +38,8 @@ class RequestParser {
 };
 
 class ResponseBuilder {
-    public:  
+    public: 
+    string response; 
     uint8_t version;
     uint16_t status;
     uint16_t name_len;
@@ -31,10 +47,10 @@ class ResponseBuilder {
     uint32_t size;
     string payload;
 
-    ResponseBuilder(uint8_t version, uint16_t status,
-     string filename, string payload);
-     string build();
-     size_t response_size();
+    ResponseBuilder(uint8_t version, uint16_t status,string filename, string payload);   
+    ResponseBuilder(uint8_t version, uint16_t status, string filename);
+    ResponseBuilder(uint8_t version, uint16_t status);
+    string get_response();
 };
 
 #endif /* PROTOCOL_H_ */

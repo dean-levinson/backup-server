@@ -25,7 +25,7 @@ void session(tcp::iostream stream)
     Handler handler(stream);
     string response = handler.handle_request();
 
-    stream << response;
+    stream.write(&response[0], response.size());
   }
   catch (std::exception& e)
   {
