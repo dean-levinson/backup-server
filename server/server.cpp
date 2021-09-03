@@ -17,18 +17,15 @@ void session(tcp::iostream stream)
 {
   try
   {
-    for (;;)
-    {  
-      /** 
-       * The handler gets the socket as a stream and reads from it on the fly. The alternative was to read the whole stream
-       * into a buffer and then handle the request. The main drawback of the alternative is that the passing file will be save
-       * in the memory of the server before handling. This can be avoid by reading directly from the socket.
-       */ 
-      Handler handler(stream);
-      string response = handler.handle_request();
+    /** 
+     * The handler gets the socket as a stream and reads from it on the fly. The alternative was to read the whole stream
+     * into a buffer and then handle the request. The main drawback of the alternative is that the passing file will be save
+     * in the memory of the server before handling. This can be avoid by reading directly from the socket.
+     */ 
+    Handler handler(stream);
+    string response = handler.handle_request();
 
-      stream << response;
-    }
+    stream << response;
   }
   catch (std::exception& e)
   {
