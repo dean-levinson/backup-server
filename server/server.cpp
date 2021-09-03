@@ -2,7 +2,10 @@
 #include <iostream>
 #include <thread>
 #include <utility>
+#include <string>
 #include <boost/asio.hpp>
+#include "protocol.h"
+#include "handler.h"
 
 using namespace boost::asio::ip;
 using boost::asio::ip::tcp;
@@ -10,22 +13,21 @@ using boost::asio::ip::tcp;
 
 const int max_length = 1024;
 
-void session(tcp::socket sock)
+void session(tcp::iostream stream)
 {
   try
   {
     for (;;)
-    {
-      char data[max_length];
+    {  
+      /** 
+       * The handler gets the socket as a stream and reads from it on the fly. The alternative was to read the whole stream
+       * into a buffer and then handle the request. The main drawback of the alternative is that the passing file will be save
+       * in the memory of the server before handling. This can be avoid by reading directly from the socket.
+       */ 
+      Handler handler(stream);
+      string response = handler.handle_request();
 
-      boost::system::error_code error;
-      size_t length = sock.read_some(boost::asio::buffer(data), error);
-      if (error == boost::asio::error::eof)
-        break; // Connection closed cleanly by peer.
-      else if (error)
-        throw boost::system::system_error(error); // Some other error.
-
-      boost::asio::write(sock, boost::asio::buffer(data, length));
+      stream << response;
     }
   }
   catch (std::exception& e)
@@ -40,12 +42,14 @@ void run_server(boost::asio::io_context& io_context, address_v4 address, unsigne
     
     for (;;)
     {
-      tcp::socket sock(a.accept());
-      tcp::endpoint remote_ep = sock.remote_endpoint();
+      tcp::iostream stream;
+      a.accept(stream.socket());
+      tcp::endpoint remote_ep = stream.socket().remote_endpoint();
+
       std::cout << "Starting session with (" << remote_ep.address() << ", " << remote_ep.port() << ")" << std::endl; 
 
       // Because of using move, the thread will think it gets a rvalue parameter,
       //  and therefor the socket's destructor will be called at the end of the scope.
-      std::thread(session, std::move(sock)).detach();
+      std::thread(session, std::move(stream)).detach();
     }
 }

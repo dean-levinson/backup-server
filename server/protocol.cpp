@@ -6,19 +6,27 @@ using namespace std;
 RequestParser::RequestParser(string data) {
     stringstream ss;
     ss << data;
-    ss >> user_id;
-    ss >> version;
-    ss >> op;
-    ss >> name_len;
+    init(ss);
+}; 
+
+RequestParser::RequestParser(iostream& stream) {
+    init(stream);
+}; 
+
+void RequestParser::init(iostream& stream) {
+    stream >> user_id;
+    stream >> version;
+    stream >> op;
+    stream >> name_len;
     filename = string(name_len, ' ');
 
     // Compatible from version > C++03 when strings became contiguous.
-    ss.readsome(&filename[0], name_len);
-    ss >> size;
+    stream.readsome(&filename[0], name_len);
+    stream >> size;
     
     payload = string(size, ' ');
-    ss.readsome(&payload[0], name_len);
-}; 
+    stream.readsome(&payload[0], name_len);
+}
 
 ResponseBuilder::ResponseBuilder(uint8_t version, uint16_t status, string filename, string payload):
  version(version), status(status), name_len(filename.size()), filename(filename),

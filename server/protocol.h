@@ -6,6 +6,9 @@
 using namespace std;
 
 class RequestParser {
+    public:
+    void init(iostream& stream);
+
     public:  
     uint32_t user_id;
     uint8_t version;
@@ -15,6 +18,7 @@ class RequestParser {
     uint32_t size;
     string payload;
 
+    RequestParser(iostream& stream);
     RequestParser(string data);
 };
 
