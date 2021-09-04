@@ -34,7 +34,7 @@ void RequestParser::init(iostream& stream) {
     read_from_stream(stream, user_id);
     read_from_stream(stream, version);
     read_from_stream(stream, op);
-    if (op == BACKUP_FILE || op == RESTORE_FILE || op == REMOVE_FILE ) {
+    if (op == BACKUP_FILE || op == RESTORE_FILE || op == REMOVE_FILE) {
         read_from_stream(stream, name_len);
         read_from_stream_to_string(stream, filename, name_len);
     }

@@ -2,11 +2,10 @@ import os
 import logging
 import struct
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]: %(message)s")
-
 class STATUS_CODES(object):
-    BACKUP_SUCCESS = 210
+    RESTORE_SUCCESS = 210
     LIST_FILES_SUCCESS = 211
+    BACKUP_OR_REMOVE_SUCCESS = 212
     FILE_NOT_FOUND = 1001
     NO_FILES = 1002
     GENERAL_FAILURE = 1003
@@ -48,7 +47,7 @@ class Request(object):
                                                                         self.filename,
                                                                         self.size,
                                                                         self.payload)
-        elif not self.filename:
+        elif self.filename:
             packed = struct.pack(f'<IBBH{self.name_len}s', self.user_id,
                                                            self.version,
                                                            self.op_code,
@@ -77,21 +76,23 @@ class Response(object):
         self.size = None
         self.payload = None
 
+        logging.debug(f"Got response: {binary_response}")
         self.parse_response(binary_response)
 
     def parse_response(self, binary_response):
         self.version, self.status = struct.unpack('<BH', binary_response[:3])
         binary_response = binary_response[3:]
          
-        if self.status in (STATUS_CODES.BACKUP_SUCCESS, STATUS_CODES.LIST_FILES_SUCCESS, STATUS_CODES.FILE_NOT_FOUND):
+        if self.status in (STATUS_CODES.RESTORE_SUCCESS, STATUS_CODES.BACKUP_OR_REMOVE_SUCCESS,
+                           STATUS_CODES.LIST_FILES_SUCCESS, STATUS_CODES.FILE_NOT_FOUND):
             self.name_len = struct.unpack('<H', binary_response[:2])[0]
             binary_response = binary_response[2:]
             self.filename = struct.unpack(f'<{self.name_len}s', binary_response[:self.name_len])[0]
             binary_response = binary_response[self.name_len:]
 
-        if self.status in (STATUS_CODES.BACKUP_SUCCESS, STATUS_CODES.LIST_FILES_SUCCESS):
-            self.size = struct.unpack('<H', binary_response[:2])[0]
-            binary_response = binary_response[2:]
+        if self.status in (STATUS_CODES.RESTORE_SUCCESS, STATUS_CODES.LIST_FILES_SUCCESS):
+            self.size = struct.unpack('<I', binary_response[:4])[0]
+            binary_response = binary_response[4:]
             self.payload = struct.unpack(f'<{self.size}s', binary_response[:self.size])[0]
             binary_response = binary_response[self.size:]
 
