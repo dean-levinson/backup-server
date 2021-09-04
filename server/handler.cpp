@@ -33,9 +33,15 @@ string Handler::backup_file() {
 }
 
 string Handler::restore_file() {
-    std::string payload = backup.restore_file(request.filename);
-    ResponseBuilder builder(SERVER_VERSION, RESTORE_SUCCESS, request.filename, payload);   
-    return builder.get_response();
+    try {
+        std::string payload = backup.restore_file(request.filename);
+        ResponseBuilder builder(SERVER_VERSION, RESTORE_SUCCESS, request.filename, payload);   
+        return builder.get_response();
+
+    } catch(FileNotFound e) {
+        ResponseBuilder builder(SERVER_VERSION, FILE_NOT_FOUND, request.filename);   
+        return builder.get_response();
+    }
 }
 
 string Handler::remove_file() {
@@ -47,8 +53,13 @@ string Handler::remove_file() {
 string Handler::list_files() {
     std::string payload = backup.list_files(); 
     std::string filename = generate_filename();
-    ResponseBuilder builder(SERVER_VERSION, LIST_FILES_SUCCESS, filename, payload);   
-    return builder.get_response();
+    if (payload.size() > 0) {
+        ResponseBuilder builder(SERVER_VERSION, LIST_FILES_SUCCESS, filename, payload);   
+        return builder.get_response();
+    } else {
+        ResponseBuilder builder(SERVER_VERSION, NO_FILES);   
+        return builder.get_response();
+    }
 }
 
 std::string Handler::generate_filename() {
