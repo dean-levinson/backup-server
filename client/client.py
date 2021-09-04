@@ -1,25 +1,11 @@
 import socket
 import logging
 from protocol import Request, Response, OP_CODES, STATUS_CODES
+from exceptions import BackupError, RestoreError, RemoveError
 from functools import wraps
 
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]: %(message)s")
 
-
-class ClientNotConnect(Exception):
-    pass
-
-class BackupError(Exception):
-    def __init__(self, status, filepath):
-        super(self).__init__(f"Failed backuping '{filepath}', got status {status}")
-
-class RestoreError(Exception):
-    def __init__(self, status, filename):
-        super(self).__init__(f"Failed Restoring '{filename}', got status {status}")
-
-class RemoveError(Exception):
-    def __init__(self, status, filename):
-        super(self).__init__(f"Failed removing '{filename}', got status {status}")
 
 class Client(object):
     """
