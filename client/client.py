@@ -89,7 +89,7 @@ class Client(object):
 
     @on_connect
     def list_files(self):
-        logging.info(f"Asking for files list")
+        logging.info(f"Asking for files list...")
         response = self._send_request(OP_CODES.LIST_FILES)
         if response.status == STATUS_CODES.NO_FILES:
             err = ListFilesError(response.status, self.user_id)
