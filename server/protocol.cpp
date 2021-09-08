@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include "protocol.h"
 
-using namespace std;
+using std::string;
 
 #define read_from_stream(stream, var) \
         stream.read(reinterpret_cast<char*>(&var), sizeof(var))
@@ -21,16 +21,16 @@ using namespace std;
         stream.write(&var[0], var.size())
 
 RequestParser::RequestParser(string data) {
-    stringstream ss;
+    std::stringstream ss;
     ss << data;
     init(ss);
 }; 
 
-RequestParser::RequestParser(iostream& stream) {
+RequestParser::RequestParser(std::iostream& stream) {
     init(stream);
 }; 
 
-void RequestParser::init(iostream& stream) {
+void RequestParser::init(std::iostream& stream) {
     read_from_stream(stream, user_id);
     read_from_stream(stream, version);
     read_from_stream(stream, op);
@@ -47,7 +47,7 @@ void RequestParser::init(iostream& stream) {
 ResponseBuilder::ResponseBuilder(uint8_t version, uint16_t status, string filename, string payload):
  version(version), status(status), name_len(filename.size()), filename(filename),
   size(payload.size()), payload(payload) {
-     stringstream ss;
+     std::stringstream ss;
      write_to_stream(ss, version);
      write_to_stream(ss, status);
      write_to_stream(ss, name_len);
@@ -59,7 +59,7 @@ ResponseBuilder::ResponseBuilder(uint8_t version, uint16_t status, string filena
 
 ResponseBuilder::ResponseBuilder(uint8_t version, uint16_t status, string filename):
  version(version), status(status), name_len(filename.size()), filename(filename) {
-     stringstream ss;
+     std::stringstream ss;
      write_to_stream(ss, version);
      write_to_stream(ss, status);
      write_to_stream(ss, name_len);
@@ -69,7 +69,7 @@ ResponseBuilder::ResponseBuilder(uint8_t version, uint16_t status, string filena
 
 ResponseBuilder::ResponseBuilder(uint8_t version, uint16_t status):
  version(version), status(status) {
-     stringstream ss;
+     std::stringstream ss;
      write_to_stream(ss, version);
      write_to_stream(ss, status);
      response = string(std::istreambuf_iterator<char>(ss), {});

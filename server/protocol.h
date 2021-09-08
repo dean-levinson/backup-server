@@ -1,9 +1,10 @@
 #ifndef PROTOCOL_H_
 #define PROTOCOL_H_
 
+#include <ostream>
 #include <string>
 
-using namespace std;
+using std::string;
 
 enum OP_CODE {
     BACKUP_FILE = 100,
@@ -23,7 +24,12 @@ enum STATUS_CODE {
 
 class RequestParser {
     public:
-    void init(iostream& stream);
+    /**
+     * Initialize to construction from a stream.
+     * 
+     * @param stream - A stream that contains the client's request.
+     */
+    void init(std::iostream& stream);
 
     public:  
     uint32_t user_id;
@@ -34,7 +40,18 @@ class RequestParser {
     uint32_t size;
     string payload;
 
-    RequestParser(iostream& stream);
+    /**
+     * Construct a new Request Parser object
+     * 
+     * @param stream - A stream that contains the client's request.
+     */
+    RequestParser(std::iostream& stream);
+
+    /**
+     * Construct a new Request Parser object
+     * 
+     * @param data - A string that contains the client's request.
+     */
     RequestParser(string data);
 };
 
@@ -48,9 +65,26 @@ class ResponseBuilder {
     uint32_t size;
     string payload;
 
+    /**
+     * Construct a new Response Builder object, with the relevant params.
+     */
     ResponseBuilder(uint8_t version, uint16_t status,string filename, string payload);   
+
+    /**
+     * Construct a new Response Builder object, with the relevant params.
+     */
     ResponseBuilder(uint8_t version, uint16_t status, string filename);
+
+    /**
+     * Construct a new Response Builder object, with the relevant params.
+     */
     ResponseBuilder(uint8_t version, uint16_t status);
+
+    /**
+     * Get the response.
+     * 
+     * @return string - A string that contains the response.
+     */
     string get_response();
 };
 

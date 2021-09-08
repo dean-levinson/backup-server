@@ -8,6 +8,11 @@
 
 using boost::asio::ip::tcp;
 
+/**
+ * Handles specific request from the client from point to point - 
+ * Parses the request, handles the request, and finally generates a response.
+ * 
+ */
 class Handler {
     private:
     RequestParser request;
@@ -19,7 +24,18 @@ class Handler {
     string generate_filename();
     
     public:
+    /**
+     * Construct a new Handler object.
+     * 
+     * @param stream - The stream that contains the client's request.
+     */
     Handler(tcp::iostream& stream);
+
+    /**
+     * Handles the request and returns the response.
+     * 
+     * @return string - A string that contains the response. 
+     */
     string handle_request();
 };
 
