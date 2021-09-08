@@ -7,7 +7,7 @@ class BackupError(Exception):
 class RestoreError(Exception):
     def __init__(self, status, filename):
         if status == STATUS_CODES.FILE_NOT_FOUND:
-            super(RestoreError, self).__init__(f"File '{filename}' not found on server")
+            super(RestoreError, self).__init__(f"File '{filename}' was not found on server")
         else:
             super(RestoreError, self).__init__(f"Failed Restoring '{filename}', got status {status}")
 

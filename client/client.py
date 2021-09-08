@@ -6,7 +6,7 @@ from protocol import Request, Response, OP_CODES, STATUS_CODES
 from exceptions import BackupError, RestoreError, RemoveError, ListFilesError
 from functools import wraps
 
-logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]: %(message)s")
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s]: %(message)s")
 
 SERVER_INFO_FILE = "server.info"
 BACKUP_FILE = "backup.info"
@@ -28,16 +28,16 @@ class Client(object):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         logging.debug(f"Conencting to ({self.server_ip}, {self.server_port})")
         self._socket.connect((self.server_ip, self.server_port))
-        logging.debug("Connected successfully!")
-        return socket
+        logging.debug(f"Connected successfully! Using socket {self._socket.getsockname()}")
+
     
     def is_connected(self):
         return bool(self._socket)
 
     def close(self):
+        logging.debug(f"Closing socket - '{self._socket.getsockname()}")
         self._socket.close()
         self._socket = None
-        logging.info(f"Client '{self.user_id}' to ({self.server_ip}, {self.server_port}) is closed")
 
     def on_connect(inner):
         @wraps(inner)
@@ -109,7 +109,8 @@ class Client(object):
         logging.debug(f"Sending request {request}...")
         self._socket.send(build_request)
 
-        response = Response(self._socket.recv(1024)) 
+        response = Response()
+        response.parse_from_socket(self._socket) 
         logging.debug(f"Got response {response}")
         return response
 

@@ -68,7 +68,12 @@ class Request(object):
             return f"<Request user_id={self.user_id}, version={self.version}, opcode={self.op_code}>"
 
 class Response(object):
-    def __init__(self, binary_response):
+    VERSION_FIELD_SIZE = 1
+    STATUS_FIELD_SIZE = 2
+    NAME_LEN_FIELD_SIZE = 2
+    SIZE_FIELD_SIZE = 4
+    
+    def __init__(self):
         self.version = None
         self.status = None
         self.name_len = None
@@ -76,28 +81,48 @@ class Response(object):
         self.size = None
         self.payload = None
 
-        logging.debug(f"Got response: {binary_response}")
-        self.parse_response(binary_response)
+    def parse_from_socket(self, sock):
+        logging.debug("Parsing response from socket...")
+        self.parse_headers(sock.recv(self.VERSION_FIELD_SIZE + self.STATUS_FIELD_SIZE))
+        logging.debug(f"version - {self.version}, Status - {self.status}")
 
-    def parse_response(self, binary_response):
-        self.version, self.status = struct.unpack('<BH', binary_response[:3])
-        binary_response = binary_response[3:]
-         
-        if self.status in (STATUS_CODES.RESTORE_SUCCESS, STATUS_CODES.BACKUP_OR_REMOVE_SUCCESS,
-                           STATUS_CODES.LIST_FILES_SUCCESS, STATUS_CODES.FILE_NOT_FOUND):
-            self.name_len = struct.unpack('<H', binary_response[:2])[0]
-            binary_response = binary_response[2:]
-            self.filename = struct.unpack(f'<{self.name_len}s', binary_response[:self.name_len])[0]
-            binary_response = binary_response[self.name_len:]
+        if self.has_filename():
+            self.parse_name_len(sock.recv(self.NAME_LEN_FIELD_SIZE))
+            self.parse_filename(sock.recv(self.name_len))
+            logging.debug(f"name_len - {self.name_len}, filename - {self.filename}")
 
-        if self.status in (STATUS_CODES.RESTORE_SUCCESS, STATUS_CODES.LIST_FILES_SUCCESS):
-            self.size = struct.unpack('<I', binary_response[:4])[0]
-            binary_response = binary_response[4:]
-            self.payload = struct.unpack(f'<{self.size}s', binary_response[:self.size])[0]
-            binary_response = binary_response[self.size:]
+        if self.has_payload():
+            self.parse_size(sock.recv(self.SIZE_FIELD_SIZE))
+            self.parse_payload(sock.recv(self.size))
+            logging.debug(f"payload_size - {self.size}")
+        
+        logging.debug("Response has completely parsed")
+
+    def has_filename(self):
+        return self.status in (STATUS_CODES.RESTORE_SUCCESS, STATUS_CODES.BACKUP_OR_REMOVE_SUCCESS,
+                               STATUS_CODES.LIST_FILES_SUCCESS, STATUS_CODES.FILE_NOT_FOUND)
+    
+    def has_payload(self):
+        return self.status in (STATUS_CODES.RESTORE_SUCCESS, STATUS_CODES.LIST_FILES_SUCCESS)
+
+    def parse_headers(self, binary_response):
+        self.version, self.status = struct.unpack('<BH', binary_response[:(self.VERSION_FIELD_SIZE +
+                                                                           self.STATUS_FIELD_SIZE)])
+
+    def parse_name_len(self, binary_response):         
+        self.name_len = struct.unpack('<H', binary_response[:self.NAME_LEN_FIELD_SIZE])[0]
+    
+    def parse_filename(self, binary_response):
+        self.filename = struct.unpack(f'<{self.name_len}s', binary_response[:self.name_len])[0]
+
+    def parse_size(self, binary_response):
+        self.size = struct.unpack('<I', binary_response[:self.SIZE_FIELD_SIZE])[0]
+    
+    def parse_payload(self, binary_response):
+        self.payload = struct.unpack(f'<{self.size}s', binary_response[:self.size])[0]
 
     def __str__(self):
-        if self.filename:
+        if self.has_filename():
             return f"<Request version={self.version}, status={self.status}, filename={self.filename}>"
         else:
             return f"<Request version={self.version}, status={self.status}>"
