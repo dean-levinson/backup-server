@@ -26,7 +26,7 @@ class Client(object):
 
     def connect(self):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        logging.debug(f"Conencting to ({self.server_ip}, {self.server_port})")
+        logging.debug(f"Connecting to ({self.server_ip}, {self.server_port})")
         self._socket.connect((self.server_ip, self.server_port))
         logging.debug(f"Connected successfully! Using socket {self._socket.getsockname()}")
 
